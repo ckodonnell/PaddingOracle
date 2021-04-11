@@ -39,25 +39,29 @@ def attack(ciphertext):
     c2 = blocks[2]
 
     #initalize fake ciphertext to random string of 16 z's. C1'
-    fakeCipherText = list("zzzzzzzzzzzzzzzz")
+    fakeCipherText = ["z"]*16
 
     #initialize plaintext. these will get edited as the message gets decoded. P2
-    plainText = list("0000000000000000")
+    plainText = ["0"]*16
 
-    intermediate = list("iiiiiiiiiiiiiiii")
-    hold = ''
+    intermediate = ["i"]*16
 
     for c in range(1, BLOCK_SIZE+1):
         for v in range(0,256):
-            fakeCipherText[-c] = chr(v) #C1'[c]. set last value in fakeciphertext to v
+            fakeCipherText[-c] = chr(v) #C1'[c]
             if (query_oracle(fakeCipherText, c2)):
+                #calculate intermediate value
                 intermediate[-c] = c ^ v
+                #calculate P2
                 plainText[-c] = chr(intermediate[-c] ^ ord(c1[-c]))
-                print(plainText)
-                for k in range(BLOCK_SIZE-c, BLOCK_SIZE):
-                    hold = ''
-                
-    return 0
+        for k in range(1, c+1):
+            #calculate intermediate value
+            intermediate[-k] = ord(c1[-k]) ^ ord(plainText[-k])
+            #update C1' (fake ciphertext)
+            fakeCipherText[-k] = chr(intermediate[-k] ^ (c+1))
+
+    plainText = "".join(map(str, plainText)) #formatting for readability
+    return plainText
 
 # test attack by encrypting a message and then calling attack method
 def test_attack():
